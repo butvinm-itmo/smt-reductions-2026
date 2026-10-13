@@ -387,8 +387,20 @@ def run_task(task):
 
 
 if __name__ == "__main__":
-    run_task(is_power_of_two)
-    run_task(bithack)
-    run_task(queens)
-    run_task(array_theory_proof)
-    run_task(groups)
+    if len(sys.argv) != 2:
+        print(
+            f"usage: {sys.argv[0]} <is_power_of_two|bithack|queens|array_theory_proof|groups>"
+        )
+        exit(1)
+
+    match sys.argv[1]:
+        case "is_power_of_two":
+            run_task(is_power_of_two)
+        case "bithack":
+            run_task(bithack)
+        case "queens":
+            run_task(queens)
+        case "array_theory_proof":
+            run_task(array_theory_proof)
+        case "groups":
+            run_task(groups)
