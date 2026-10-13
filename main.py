@@ -1,6 +1,6 @@
-from typing import Set, Tuple, List
-from z3 import *
 from time import perf_counter
+
+from z3 import *
 
 
 def model2formula(model):
@@ -9,7 +9,7 @@ def model2formula(model):
 
 # Пример: решение теоремы Ферма (теория NIA)
 def ferma_theorem(easy=True):  # NIA
-    x, y, z = Ints('x y z')
+    x, y, z = Ints("x y z")
     s = Solver()
     for v in [x, y, z]:
         s.add(v > 0)
@@ -18,7 +18,7 @@ def ferma_theorem(easy=True):  # NIA
         s.add(y < z)
         s.add(x * x + y * y == z * z)
     else:
-        s.add(x * x * x + y * y * y == z * z * z) # should be unsat, but diverges
+        s.add(x * x * x + y * y * y == z * z * z)  # should be unsat, but diverges
     print(s.to_smt2())
     while s.check() == sat:
         model = s.model()
@@ -30,7 +30,7 @@ INT_SIZE = 32
 
 
 def abs_ex():  # BV
-    x, y = BitVecs('x y', INT_SIZE)
+    x, y = BitVecs("x y", INT_SIZE)
     s = Solver()
     s.add(y == If(x >= 0, x, -x))
     s.add(Not(y >= 0))
@@ -41,7 +41,7 @@ def abs_ex():  # BV
 # Пример: факторизация чисел (теория BV)
 def factor(out, nia=False, long=False):  # BV
     long = not nia and long
-    x, y, n = Ints('x y n') if nia else BitVecs('x y n', INT_SIZE)
+    x, y, n = Ints("x y n") if nia else BitVecs("x y n", INT_SIZE)
     s = Solver()
     s.add(n == out)
     if long:
@@ -61,7 +61,7 @@ def factor(out, nia=False, long=False):  # BV
     xv = model[x]
     yv = model[y]
     xy = xv.as_long() * yv.as_long()
-    print(f"{xv} * {yv} = {xy}", end='')
+    print(f"{xv} * {yv} = {xy}", end="")
     if not nia:
         print(f" ?= {xy % (1 << INT_SIZE)}")
     else:
@@ -78,6 +78,7 @@ def is_power_of_two():
         :returns вердикт решателя (результат `check()`) на запросе, невыполнимость которого доказывает утверждение
         """
         return
+
     for i in range(1, 20):
         assert attempt(i) == unsat, f"утверждение не доказано для SIZE = {i}"
 
@@ -85,8 +86,12 @@ def is_power_of_two():
 def bithack():
     def is_identity(a: int, b: int, BIT_WIDTH: int) -> bool:
         mask = (1 << BIT_WIDTH) - 1
-        return all((((x + a) ^ b) - a) & mask == (((x - a) ^ b) + a) & mask for x in range(1 << BIT_WIDTH))
-    def attempt(BIT_WIDTH: int) -> Set[Tuple[int, int]]:
+        return all(
+            (((x + a) ^ b) - a) & mask == (((x - a) ^ b) + a) & mask
+            for x in range(1 << BIT_WIDTH)
+        )
+
+    def attempt(BIT_WIDTH: int) -> set[tuple[int, int]]:
         """
         TODO: 1 point
         J. H. Quick noticed that ((x + 2) ⊕ 3) - 2 = ((x - 2) ⊕ 3) + 2 for all x.
@@ -96,24 +101,98 @@ def bithack():
         :return set of pairs of `a` and `b`
         """
         return {(3, 3)}
+
     results = {width: attempt(width) for width in range(2, 6)}
     for width, pairs in results.items():
         for a, b in pairs:
-            assert 0 <= a < 1 << width and 0 <= b < 1 << width, f"({a}, {b}) does not fit into {width} bits"
-            assert is_identity(a, b, width), f"not an identity for a = {a}, b = {b}, BIT_WIDTH = {width}"
-    assert results[2] == {(3, 3), (0, 0), (1, 1), (2, 0), (2, 2), (2, 3), (0, 3), (0, 1), (0, 2), (1, 0), (3, 0), (3, 1), (2, 1), (1, 2), (1, 3), (3, 2)}
-    assert results[3] == {(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (2, 5), (7, 4), (6, 2), (7, 1), (6, 5), (4, 2), (3, 0), (4, 5), (5, 0), (0, 1), (0, 7), (2, 4), (0, 4), (2, 1), (2, 7), (1, 5), (6, 1), (7, 0), (6, 4), (6, 7), (4, 1), (4, 7), (3, 5), (4, 4), (5, 5), (0, 0), (1, 1), (0, 3), (2, 0), (1, 4), (0, 6), (2, 3), (2, 6), (6, 0), (6, 6), (7, 5), (6, 3)}
+            assert 0 <= a < 1 << width and 0 <= b < 1 << width, (
+                f"({a}, {b}) does not fit into {width} bits"
+            )
+            assert is_identity(a, b, width), (
+                f"not an identity for a = {a}, b = {b}, BIT_WIDTH = {width}"
+            )
+    assert results[2] == {
+        (3, 3),
+        (0, 0),
+        (1, 1),
+        (2, 0),
+        (2, 2),
+        (2, 3),
+        (0, 3),
+        (0, 1),
+        (0, 2),
+        (1, 0),
+        (3, 0),
+        (3, 1),
+        (2, 1),
+        (1, 2),
+        (1, 3),
+        (3, 2),
+    }
+    assert results[3] == {
+        (4, 0),
+        (3, 4),
+        (4, 3),
+        (3, 1),
+        (5, 4),
+        (4, 6),
+        (5, 1),
+        (0, 2),
+        (0, 5),
+        (2, 2),
+        (1, 0),
+        (2, 5),
+        (7, 4),
+        (6, 2),
+        (7, 1),
+        (6, 5),
+        (4, 2),
+        (3, 0),
+        (4, 5),
+        (5, 0),
+        (0, 1),
+        (0, 7),
+        (2, 4),
+        (0, 4),
+        (2, 1),
+        (2, 7),
+        (1, 5),
+        (6, 1),
+        (7, 0),
+        (6, 4),
+        (6, 7),
+        (4, 1),
+        (4, 7),
+        (3, 5),
+        (4, 4),
+        (5, 5),
+        (0, 0),
+        (1, 1),
+        (0, 3),
+        (2, 0),
+        (1, 4),
+        (0, 6),
+        (2, 3),
+        (2, 6),
+        (6, 0),
+        (6, 6),
+        (7, 5),
+        (6, 3),
+    }
     assert len(results[4]) == 128
     assert len(results[5]) == 320
 
 
 def queens():
     def is_ok(size, xs):
-        return (len(xs) == size
-                and set(xs) == set(range(1, size + 1))
-                and len({x - i for i, x in enumerate(xs)}) == size
-                and len({x + i for i, x in enumerate(xs)}) == size)
-    def attempt(SIZE: int) -> List[int]:
+        return (
+            len(xs) == size
+            and set(xs) == set(range(1, size + 1))
+            and len({x - i for i, x in enumerate(xs)}) == size
+            and len({x + i for i, x in enumerate(xs)}) == size
+        )
+
+    def attempt(SIZE: int) -> list[int]:
         """
         TODO: 3 points
         Решите задачу о расстановке ферзей, сведя задачу в линейную арифметику.
@@ -128,6 +207,7 @@ def queens():
         """
         solver = SolverFor("QF_LIA")
         return [4, 2, 8, 6, 1, 3, 5, 7]
+
     for s in range(8, 40):
         xs = attempt(s)
         print(xs)
@@ -136,7 +216,7 @@ def queens():
 
 # Пример: проверка сортированности массива (теория A)
 def sortedness():
-    array_sort =  ArraySort(IntSort(), IntSort())
+    array_sort = ArraySort(IntSort(), IntSort())
     sorted = RecFunction("sorted", array_sort, BoolSort())
     arr = Const("arr", array_sort)
     i, j = Ints("i j")
@@ -154,7 +234,7 @@ def sortedness():
         sorted(a),
         y <= z,
         a[x] == a[z],
-        a[x] != a[y]
+        a[x] != a[y],
     ]
     solver.add(query)
     solver.push()
@@ -181,12 +261,20 @@ def array_theory_proof():
     Эти проверки уже закодированы для вас в функции check, вам нужно только придумать и записать литералы F и Fs.
     Замечание: это упражнение фактически показывает, что теория массивов невыпукла
     """
+
     def is_literal(f):
         def has_formula_inside(t):
             return any(is_bool(c) or has_formula_inside(c) for c in t.children())
+
         if is_not(f):
             f = f.arg(0)
-        return is_bool(f) and is_app(f) and not has_formula_inside(f) and not (is_distinct(f) and f.num_args() > 2)
+        return (
+            is_bool(f)
+            and is_app(f)
+            and not has_formula_inside(f)
+            and not (is_distinct(f) and f.num_args() > 2)
+        )
+
     def check(F, Fs):
         assert len(Fs) >= 2
         for lit in [F, *Fs]:
@@ -201,6 +289,7 @@ def array_theory_proof():
             solver.add(Not(Implies(F, Fi)))
             assert solver.check() == sat
             solver.pop()
+
     F = None
     Fs = []
     check(F, Fs)
@@ -212,18 +301,19 @@ def subtyping():
         cs = [Const(c, Sort) for c in range(card)]
         x = Const(card, Sort)
         return Exists(cs, ForAll(x, Or([x == c for c in cs])))
-    Type = DeclareSort('Type')
-    subtype = Function('subtype', Type, Type, BoolSort())
-    exception = Const('exception', Type)
-    Object = Const('Object', Type)
 
-    x, y, z, v = Consts('x y z v', Type)
+    Type = DeclareSort("Type")
+    subtype = Function("subtype", Type, Type, BoolSort())
+    exception = Const("exception", Type)
+    Object = Const("Object", Type)
+
+    x, y, z, v = Consts("x y z v", Type)
     axioms = [
         subtype(x, x),
         Implies(And(subtype(x, y), subtype(y, z)), subtype(x, z)),
         Implies(And(subtype(x, y), subtype(y, x)), x == y),
         subtype(x, Object),
-        subtype(exception, x)
+        subtype(exception, x),
     ]
     solver = Solver()
     solver.add([ForAll([x, y, z, v], ax) for ax in axioms])
@@ -257,18 +347,26 @@ def groups():
     Замечание: когда решатель `solver` (см. verdict) вернул unsat, можно посмотреть на произведённое им доказательство: print(solver.proof().sexpr())
     (Для этого в начало решения вставьте `set_param(proof=True)`)
     """
+
     def check(axioms, theorems):
         assert len(axioms) > 0
         assert len(theorems) == 4
+
         def verdict(formulas):
             solver = Solver()
             solver.set("rlimit", 5000000)
             solver.add(formulas)
             return solver.check()
+
         assert verdict(axioms) != unsat, "аксиомы противоречивы"
         for theorem in theorems:
-            assert verdict([Not(theorem)]) != unsat, f"{theorem} верно и без аксиом группы"
-            assert verdict([*axioms, Not(theorem)]) == unsat, f"{theorem} не выведено из аксиом"
+            assert verdict([Not(theorem)]) != unsat, (
+                f"{theorem} верно и без аксиом группы"
+            )
+            assert verdict([*axioms, Not(theorem)]) == unsat, (
+                f"{theorem} не выведено из аксиом"
+            )
+
     axioms = []
     theorems = []
     check(axioms, theorems)
