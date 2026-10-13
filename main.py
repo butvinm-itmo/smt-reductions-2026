@@ -301,6 +301,7 @@ def array_theory_proof():
 
         if is_not(f):
             f = f.arg(0)
+
         return (
             is_bool(f)
             and is_app(f)
@@ -312,6 +313,7 @@ def array_theory_proof():
         assert len(Fs) >= 2
         for lit in [F, *Fs]:
             assert is_literal(lit), f"{lit} - не литерал"
+
         solver = SolverFor("QF_AUFLIA")
         solver.push()
         solver.add(Not(Implies(F, Or(Fs))))
@@ -323,8 +325,14 @@ def array_theory_proof():
             assert solver.check() == sat
             solver.pop()
 
-    F = None
-    Fs = []
+    a = Array("a", IntSort(), IntSort())
+    w = Int("w")
+    v = Int("v")
+    i = Int("i")
+    j = Int("j")
+    
+    F = (a[i] == w) 
+    Fs = [Store(a, j, v)[i] == w, Store(a, j, v)[i] == v]
     check(F, Fs)
 
 
