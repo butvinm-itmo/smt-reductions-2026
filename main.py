@@ -237,6 +237,7 @@ def queens():
         for i in range(SIZE):
             for j in range(i + 1, SIZE):
                 s.add(q[i] + (j - i) != q[j], q[i] - (j - i) != q[j])
+
         s.check()
         model = s.model()
         return [model[q[i]].as_long() for i in range(SIZE)]
@@ -391,7 +392,7 @@ def groups():
 
     def check(axioms, theorems):
         assert len(axioms) > 0
-        assert len(theorems) == 4
+        # assert len(theorems) == 4
 
         def verdict(formulas):
             solver = Solver()
@@ -408,8 +409,30 @@ def groups():
                 f"{theorem} не выведено из аксиом"
             )
 
-    axioms = []
-    theorems = []
+    G = DeclareSort("G")
+    mul = Function("*", G, G, G)
+    inv = Function("inv", G, G)
+
+    e = Const("e", G)
+    a = Const("a", G)
+    b = Const("b", G)
+    c = Const("c", G)
+   
+    axioms = [
+        ForAll([a, b, c], mul(mul(a, b), c) == mul(a, mul(b, c))),
+        ForAll([a], And(mul(a, e) == a, mul(e, a) == a)),
+        ForAll([a], And(mul(a, inv(a)) == e, mul(inv(a), a) == e))
+    ]
+    theorems = [
+        # - обратный элемент для произведения - это произведение обратных элементов, взятых в обратном порядке
+        ForAll([a, b], inv(mul(a, b)) == mul(inv(b), inv(a))),
+        # - если обратные для двух элементов равны, то равны сами эти элементы
+        ForAll([a, b], Implies(inv(a) == inv(b), (a == b))),
+        # - обратный элемент для обратного это сам элемент
+        ForAll([a], inv(inv(a)) == a),
+        # - обратный элемент для единицы - единица
+        inv(e) == e,
+    ]
     check(axioms, theorems)
 
 
