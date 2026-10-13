@@ -120,7 +120,7 @@ def bithack():
             bv = model.eval(b, model_completion=True).as_long()
             solutions.add((av, bv))
             s.add(Not(And(a == av, b == bv)))
-            
+
         return solutions
 
     results = {width: attempt(width) for width in range(2, 6)}
@@ -226,8 +226,20 @@ def queens():
             если по индексу i расположено число j в списке, тогда в строке i+1 и в столбце j стоит ферзь
             Пример: [4, 2, 8, 6, 1, 3, 5, 7]
         """
-        solver = SolverFor("QF_LIA")
-        return [4, 2, 8, 6, 1, 3, 5, 7]
+        s = SolverFor("QF_LIA")
+
+        q = [Int(f"col{i}") for i in range(SIZE)]
+
+        s.add(Distinct(q))
+        for i in range(SIZE):
+            s.add(1 <= q[i], q[i] <= SIZE)
+
+        for i in range(SIZE):
+            for j in range(i + 1, SIZE):
+                s.add(q[i] + (j - i) != q[j], q[i] - (j - i) != q[j])
+        s.check()
+        model = s.model()
+        return [model[q[i]].as_long() for i in range(SIZE)]
 
     for s in range(8, 40):
         xs = attempt(s)
