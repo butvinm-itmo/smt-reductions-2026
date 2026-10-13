@@ -84,10 +84,7 @@ def is_power_of_two():
         s = Solver()
         s.add(f != is_pow2)
 
-        t = perf_counter()
-        result = s.check()
-        print("Estimated time:", perf_counter() - t)
-        return result
+        return s.check()
 
     for i in range(1, 20):
         assert attempt(i) == unsat, f"утверждение не доказано для SIZE = {i}"
@@ -110,7 +107,21 @@ def bithack():
         :param BIT_WIDTH: width of bit vectors a, b, x
         :return set of pairs of `a` and `b`
         """
-        return {(3, 3)}
+        s = Solver()
+        x = BitVec("x", BIT_WIDTH)
+        a = BitVec("a", BIT_WIDTH)
+        b = BitVec("b", BIT_WIDTH)
+
+        s.add(ForAll([x], ((x + a) ^ b) - a == ((x - a) ^ b) + a))
+        solutions = set()
+        while s.check() == sat:
+            model = s.model()
+            av = model.eval(a, model_completion=True).as_long()
+            bv = model.eval(b, model_completion=True).as_long()
+            solutions.add((av, bv))
+            s.add(Not(And(a == av, b == bv)))
+            
+        return solutions
 
     results = {width: attempt(width) for width in range(2, 6)}
     for width, pairs in results.items():
