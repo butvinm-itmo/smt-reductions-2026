@@ -77,7 +77,17 @@ def is_power_of_two():
         :param SIZE: width of the bit vector `x`
         :returns вердикт решателя (результат `check()`) на запросе, невыполнимость которого доказывает утверждение
         """
-        return
+        x = BitVec("x", SIZE)
+        f = And(x != 0, x & (x - 1) == 0)
+        is_pow2 = Or([x == (1 << i) for i in range(SIZE)])
+
+        s = Solver()
+        s.add(f != is_pow2)
+
+        t = perf_counter()
+        result = s.check()
+        print("Estimated time:", perf_counter() - t)
+        return result
 
     for i in range(1, 20):
         assert attempt(i) == unsat, f"утверждение не доказано для SIZE = {i}"
